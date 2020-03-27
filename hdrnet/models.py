@@ -117,14 +117,14 @@ class HDRNetCurves(object):
                            use_bias=False, scope='conv2')
       grid_features = current_layer
     # -----------------------------------------------------------------------
-
+    # take the sum of local feature and global feature
     # -----------------------------------------------------------------------
     with tf.name_scope('fusion'):
       fusion_grid = grid_features
       fusion_global = tf.reshape(global_features, [bs, 1, 1, 8*cm*gd])
       fusion = tf.nn.relu(fusion_grid+fusion_global)
     # -----------------------------------------------------------------------
-
+    # take the linear prediction, gd*n_out*n_in = 96
     # -----------------------------------------------------------------------
     with tf.variable_scope('prediction'):
       current_layer = fusion
@@ -143,13 +143,14 @@ class HDRNetCurves(object):
 
   @classmethod
   def _guide(cls, input_tensor, params, is_training):
-    npts = 16  # number of control points for the curve
-    nchans = input_tensor.get_shape().as_list()[-1]
+    npts = 16  # number of control points for the curve, number of steps for piecewise linear transfer functions
+    nchans = input_tensor.get_shape().as_list()[-1] # 3 for RGB image
 
     guidemap = input_tensor
 
     # Color space change
     idtity = np.identity(nchans, dtype=np.float32) + np.random.randn(1).astype(np.float32)*1e-4
+    # color transformation matrix M in the paper
     ccm = tf.get_variable('ccm', dtype=tf.float32, initializer=idtity)
     with tf.name_scope('ccm'):
       ccm_bias = tf.get_variable('ccm_bias', shape=[nchans,], dtype=tf.float32, initializer=tf.constant_initializer(0.0))
