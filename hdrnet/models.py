@@ -276,6 +276,7 @@ class HDRNetGaussianPyrNN(HDRNetPointwiseNNGuide):
 
   @classmethod
   def _output(cls, lvls, guide_lvls, coeffs):
+    # multi-scale
     for il, (lvl, guide_lvl) in enumerate(reversed(zip(lvls, guide_lvls))):
       c = coeffs[:, :, :, :, il*3:(il+1)*3, :]
       out_lvl = HDRNetPointwiseNNGuide._output(lvl, guide_lvl, c)
